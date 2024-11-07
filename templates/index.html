@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Homepage
+{% endblock %}
+
+{% block body %}
+    <!--Hero Banner-->
+    <div class="banner">
+        <img src="/static/images/banner.png">
+        <p class="banner-right">Discover the Magic of Slime</p>
+    </div>
+    <!--Best Seller-->
+    <div class="best">
+        <h1>Best Seller</h1>
+        <div class="best-sellers">
+            <div class="best-item">
+                <img src="/static/images/best1.png" alt="Best Seller 1">
+                <h3>Candy Cane Crunch</h3>
+                <p>$19.99</p>
+                <button type="submit">Add to cart</button>
+            </div>
+            <div class="best-item">
+                <img src="/static/images/best2.png" alt="Best Seller 2">
+                <h3>Mrs.Claus Cookies</h3>
+                <p>$19.99</p>
+                <button type="submit">Add to cart</button>
+            </div>
+            <div class="best-item">
+                <img src="/static/images/best3.png" alt="Best Seller 3">
+                <h3>Christmas Clear Slime</h3>
+                <p>$19.99</p>
+                <button type="submit">Add to cart</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}

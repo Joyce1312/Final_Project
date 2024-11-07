@@ -1,0 +1,83 @@
+/*Layout*/
+body {
+    display: flex; 
+    flex-direction: column; 
+}
+
+footer {
+    background-color: #FED5DF;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.footer-links p {
+    margin: 10px 0;
+    color: #333;
+    font-size: 1rem;
+}
+
+
+
+/*Homepage*/
+.banner {
+    background-color: #D6F7F5;
+    display: flex; 
+    justify-content: flex-end; 
+    align-items:center; 
+    padding: 20px; 
+}
+
+.banner img {
+    /* Move the image slightly to the left */
+    margin-right: 100px; 
+    width: auto;  
+    height: 100%;  
+}
+
+.banner-right {
+    color: white;
+    font-size: 70px;
+    padding: 50px; 
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    width: 50%; 
+    height: 100%; 
+}
+
+.best {
+    padding: 20px;
+    text-align: center;
+    flex-direction: row;
+}
+
+.best h1 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.best-sellers {
+    display: flex;
+    justify-content: space-around; /* Spread out the best seller items */
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.best-item {
+    width: 30%; /* Each item takes up 30% of the container */
+    border: 5px solid red;
+    border-radius: 5px;
+}
+
+.best-item img {
+    width: 100%; /* Ensure the image fills the item container */
+    max-height: 70%;
+    border-radius: 5px; /* Optional: Add border radius for rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for a better look */
+}
+
+
+
+
+
+
