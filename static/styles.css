@@ -76,7 +76,17 @@ footer {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for a better look */
 }
 
+/* Product Page */
+.card{
+    width: 30%;
+}
 
+#output{
+    display: flex;
+    justify-content: space-around; /* Spread out the best seller items */
+    gap: 20px;
+    flex-wrap: wrap;
+}
 
 
 
