@@ -31,10 +31,10 @@
                 </ul>
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Login</a>
+                        <a class="nav-link" href="/login">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Register</a>
+                        <a class="nav-link" href="/register">Register</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Cart</a>
@@ -43,12 +43,14 @@
               </div>
             </div>
           </nav>
+          {% if request.endpoint != 'login' and request.endpoint != 'register' %}
           <div>
             <form>
                 <input type="text" placeholder="Search">
-                <button type="submit">Search</button>
+                <button type="submit">Search</button> 
             </form>
           </div>
+          {% endif %}
         {% block body %}{% endblock %}
         <footer style="background-color: #FED5DF;">
           <div>
