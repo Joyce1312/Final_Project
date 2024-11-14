@@ -1,1 +1,27 @@
 {% extends "layout.html" %}
+
+{%block title %}
+    Product Details
+{% endblock %}
+
+{% block body %}
+    <div class="product">
+        <div class="product-left">
+            <img src="/static/images/best1.png">
+        </div>
+        <div class="product-right">
+            <h1>Candy Cane Crunch</h1>
+            <p class="left">$19.99</p>
+            <div>
+                <select id="quantity">
+                    <option value="1">1</option>
+                    <option value="2">1</option>
+                    <option value="3">1</option>
+                </select>
+                <button class="add_cart" type="submit">Add to Cart</button>
+            </div>
+            <h3>Product Description</h3>
+            <p></p>
+        </div>
+    </div>
+{% endblock %}

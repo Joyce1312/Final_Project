@@ -25,9 +25,9 @@ import models
 def index():
     return render_template("index.html")
 
-@app.route("/product")
-def product():
-    return render_template("product.html")
+@app.route("/listing")
+def listing():
+    return render_template("listing.html")
 
 @app.route("/login")
 def login():
@@ -36,3 +36,7 @@ def login():
 @app.route("/register")
 def register():
     return render_template("register.html")
+
+@app.route("/product")
+def product():
+    return render_template("product.html")
