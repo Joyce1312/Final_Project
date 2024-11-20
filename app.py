@@ -55,10 +55,12 @@ def index():
 def listing():
     return render_template("listing.html")
 
+@app.route("/product")
+def product():
+    return render_template("product.html")
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    #Forget any user_id
-    #session.clear()
     if request.method == 'POST':
         email = request.form.get("email")
         password = request.form.get("password")
@@ -71,7 +73,7 @@ def login():
         if not password:
             flash('Please Enter Your Password.','error')
 
-        #Check if the user exits by filtering for the email
+        #Check if the user exists by filtering for the email
         user = User.query.filter_by(email=email).first()
 
         #Checks if email and password match the user
@@ -90,8 +92,69 @@ def login():
         
     return render_template("login.html")
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
+    """
+    Test user created
+    amy.wang@gmail.com
+    123
+    """
+    if request.method == "POST":
+        #Gets all info from register form
+        first = request.form.get("first")
+        last = request.form.get("last")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        confirm = request.form.get("confirm")
+
+        # Initialize an empty list for flash messages (to show all at once if needed)
+        error_messages = []
+
+
+        #Ensures first name is given
+        if not first:
+            error_messages.append('Must Enter First Name')
+
+        #Ensures last name is given
+        if not last:
+            error_messages.append('Must Enter Last Name')
+        
+        #Ensures email is given
+        if not email:
+            error_messages.append('Must Enter Email')
+
+        #Ensures password is given
+        if not password:
+            error_messages.append('Must Enter Password')
+
+        #Ensures comfirmation password is given
+        if not confirm:
+            error_messages.append('Must Enter Confirmation Password')
+
+        #Ensures password and comfirmation password match
+        if password != confirm:
+            error_messages.append('Confirmation Password Must Match Password')
+
+        #Checks if user already exits
+        user_exists = db.session.query(User).filter_by(email=email).first()
+        if user_exists:
+            flash('User Already Exists', 'warning')
+            return redirect("/login")
+        # If there are any errors, flash them and stop further processing
+        if error_messages:
+            for msg in error_messages:
+                flash(msg, 'error')
+            return redirect("/register")
+        #Creates a hash for the passwprd
+        hash_pw = generate_password_hash(password, method='scrypt', salt_length=16)
+        # Create a new user instance
+        new_user = User(first_name=first, last_name=last, email=email, password_hash=hash_pw)
+        # Add the new user to the session and commit
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect("/login")
+
+        
     return render_template("register.html")
 
 @app.route("/admin/dashboard")
@@ -104,6 +167,9 @@ def admin_dashboard():
 def user_dashboard():
     return render_template("user_dash.html")
 
-@app.route("/product")
-def product():
-    return render_template("product.html")
+@app.route("/logout")
+def logout():
+    # Log out the current user
+    logout_user()
+    return redirect("/")
+

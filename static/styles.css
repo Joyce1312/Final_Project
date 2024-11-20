@@ -148,11 +148,16 @@ footer {
 
 /* Flash Messages */
 .flash {
-    transition: opacity 1s ease-out; /* Smooth fade out */
+    display:flex;
+    flex-direction: column;
+    align-items: center; 
+    margin-top: 10px;
 }
 
-.flash.hidden {
-    opacity: 0;
-    pointer-events: none; /* Optional: Prevent interaction once hidden */
+.error{
+    color:#f49292
 }
+
+
+
 
