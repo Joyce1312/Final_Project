@@ -16,3 +16,10 @@ function init() {
     op.innerHTML = build;
 
 }
+
+setTimeout(function() {
+    let flashMessages = document.querySelectorAll('.flash');
+    flashMessages.forEach(function(message) {
+        message.classList.add('hidden');  // Add 'hidden' class to trigger fade-out
+    });
+}, 4000);

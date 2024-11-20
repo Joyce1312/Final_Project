@@ -1,3 +1,4 @@
+import os
 class Config:
     #Configures the session
     #SESSION_PERMANENT is a configuration variable (Flask specific)
@@ -13,7 +14,7 @@ class Config:
     SESSION_TYPE = "filesystem"
     #Sets up the database URI (Uniform Resorces Identifier) in flask app configuration
     #Tells flask to use SQLite and store database in sqlite:///ecommerce.db
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///ecommerce.db'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(os.path.dirname(__file__), 'instance', 'ecommerce.db')
     #This turns off a feature that tracks modifications to objects in the database. 
     #False will help you can save memory a
     SQLALCHEMY_TRACK_MODIFICATIONS = False

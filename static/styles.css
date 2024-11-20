@@ -146,5 +146,13 @@ footer {
     margin-left: 10px;
 }
 
+/* Flash Messages */
+.flash {
+    transition: opacity 1s ease-out; /* Smooth fade out */
+}
 
+.flash.hidden {
+    opacity: 0;
+    pointer-events: none; /* Optional: Prevent interaction once hidden */
+}
 
