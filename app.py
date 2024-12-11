@@ -4,7 +4,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from config import Config  #Imports config class from config.py
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import os
 
 # Import db from db.py
@@ -160,7 +160,27 @@ def register():
 @app.route("/admin/dashboard")
 @login_required
 def admin_dashboard():
-    return render_template("admin_dash.html")
+    #Double check and ensure that the user is an admin
+    if current_user.role != 'admin':
+        redirect("/")
+    #Get total number of users that are admin
+    total_users = User.query.filter(User.role != 'admin').count()
+
+    #Get total number of orders
+    total_orders = Order.query.count()
+
+    #Get total products sold
+    total_products_sold = db.session.query(db.func.sum(OrderItem.quantity)).scalar() or 0
+
+    #Get total revenue made (sum of total price from all orders)
+    total_revenue = db.session.query(db.func.sum(Order.total_price)).scalar() or 0
+
+    #Get all admin users
+    admins = User.query.filter_by(role='admin').all()
+    #Creating a list of tuples (admin_data) where each tuple contains the full name and email of each admin user
+    admin_data = [(admin.full_name, admin.email) for admin in admins]
+
+    return render_template("admin_dash.html", total_users = total_users, total_orders = total_orders, total_products_sold = total_products_sold, total_revenue = total_revenue, admin_data = admin_data)
 
 @app.route("/user/dashboard")
 @login_required

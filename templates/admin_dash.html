@@ -5,6 +5,53 @@
 {% endblock %}
 
 {% block body %}
-    admin dash
-   
+    <div class="content">
+        <div class="user">
+            <i class="bi bi-person"></i>
+            <div>
+                <h1>{{ total_users }}</h1>
+            </div>
+        </div>
+
+        <div class="order">
+            <i class="bi bi-cart"></i>
+            <div>
+                <h1>{{ total_orders }}</h1>
+            </div>
+        </div>
+
+        <div class="shop">
+            <i class="bi bi-shop"></i>
+            <div>
+                <h1>{{ total_products_sold }}</h1>
+            </div>
+        </div>
+
+        <div class="money">
+            <i class="bi bi-cash"></i>
+            <div>
+                <h1>{{ total_revenue }}</h1>
+            </div>
+        </div>
+    </div>
+    <div class="chart">
+        <table width="100%">
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Email</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for full_name, email in admin_data %}
+                <tr>
+                    <td>{{ full_name }}</td>
+                    <td>{{ email }}</td>  
+                </tr>
+                {% endfor %}
+                
+            </tbody>
+        </table>
+    </div>
+    
 {% endblock %}

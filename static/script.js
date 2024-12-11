@@ -29,3 +29,11 @@ setTimeout(function() {
         }, 1000); // Ensure it happens after the opacity transition (1 second)
     });
 }, 5000);  // Hide and remove flash messages after 5 seconds
+
+function collapse(event){
+    let button = event.target;
+    let sidebar = document.getElementById('sidebar');
+    // Toggle the 'collapsed' class on the sidebar
+    sidebar.classList.toggle('collapsed');
+}
+

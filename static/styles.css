@@ -2,6 +2,7 @@
 body {
     display: flex; 
     flex-direction: column; 
+    height: 100vh;
 }
 
 footer {
@@ -158,6 +159,120 @@ footer {
     color:#f49292
 }
 
+/* Admin Dasboard */
+
+/* Sidebar Styles */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 250px; /* Set a fixed width when expanded */
+    max-width: 30%; /* Limit width */
+    height: 100vh; /* Full height */
+    position: fixed; /* Fixed position */
+    top: 0;
+    left: 0;
+    padding-left: 20px ;
+     /* z-index: 1000; Ensure it's above other content */
+    background-color: #FED5DF;
+    transition: width 0.3s ease, padding 0.3s ease; /* Transition width and padding */
+    flex: 1;
+}
+
+/* Collapsed state of the sidebar */
+.sidebar.collapsed {
+    width: 0; /* Set width to 0 when collapsed */
+    padding: 0; /* Optionally remove padding */
+    overflow: hidden; /* Prevent content from overflowing */
+}
+
+/* Sidebar content */
+.sidebar-nav {
+    margin-top: 50px; 
+    transition: opacity 0.3s ease;
+}
+
+/* Hide the content of the sidebar when collapsed */
+.sidebar.collapsed .sidebar-nav {
+    opacity: 0; /* Optionally hide the sidebar items */
+    pointer-events: none; /* Prevent interactions when collapsed */
+}
+
+/* Sidebar nav links style */
+.link {
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    transition: background-color 0.3s;
+}
+
+.link:hover {
+    background-color: #ff99cc; /* Optional hover effect */
+}
+
+/* Position the toggle button to stay visible outside the sidebar */
+#toggleSidebarButton {
+    top: 10px; /* Position it at the top of the screen */
+    left: 20px; /* Position it away from the left edge */
+    border: none;
+    cursor: pointer;
+    opacity: 1;
+    background: transparent;
+    position: absolute; /* Absolute position inside the sidebar */
+    z-index: 2000;
+}
 
 
+#toggleSidebarButton i {
+    font-size: 1.5rem;
+}
 
+.topnav{
+    background-color: #FED5DF;
+    height: 50px;
+    display: flex;
+    justify-content: right;
+    position: relative;
+}
+
+.admin_dash{
+    display: flex;
+    flex-direction: column;
+}
+
+.profile{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 10px;
+    color: #f49292;
+}
+
+.user, .order, .shop, .money {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between icon and content */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    flex:4;
+
+  }
+
+.content {
+    padding: 20px; /* Add padding inside content */
+    margin-top: 20px; /* Space between topnav and content */
+    display: flex; /* Use flexbox to organize the content */
+    justify-content: space-between; /* Distribute the items evenly */
+    gap: 20px; /* Space between each section */
+  }
+
+  .chart{
+    margin-top: 20px;
+    display: flex; /* Use flexbox to organize the content */
+    align-items: center;
+  }
+
+  .chart table{
+    margin: 20px;
+  }
