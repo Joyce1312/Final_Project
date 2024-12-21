@@ -31,9 +31,26 @@
                 </ul>
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                   {% if current_user.is_authenticated %}
-                    <li class="nav-item">
-                      <a class="nav-link" href="/user/dashboard">Account</a>
+                    <li class="nav-item dropdown">
+                      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Account
+                      </a>
+                      <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <!--title helps make the first letter of every word uppercase-->
+                        <li><h6 class="dropdown-item">Hi {{ current_user.full_name | title }}</h6></li>
+                        <li><a class="dropdown-item" href="/user/dashboard">Account</a></li>
+                        <li><a class="dropdown-item" href="#">Wishlist</a></li>
+                        <li><a class="dropdown-item" href="#">Past Orders</a></li>
+                      </ul>
                     </li>
+                  
+
+
+
+
+                   <!--<li class="nav-item">
+                      <a class="nav-link" href="/user/dashboard">Account</a>
+                    </li>-->
                     <li class="nav-item">
                       <a class="nav-link" href="/logout">Logout</a>
                     </li>

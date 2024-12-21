@@ -5,5 +5,17 @@
 {% endblock %}
 
 {% block body %}
-   user dash
+    <div class="user_dash">
+        <div class="welcome">
+            <h4>Hi {{ current_user.full_name | title }}</h4>
+            <p>Welcome to your dashboard</p>
+        </div>
+        <div class="user_info">
+            <h3>Personal Info <a class="edit_link" href="#">Edit</a></h3>
+            <p>Name: {{ current_user.full_name | title }} </p>
+            <p>Email: </p>
+            <p>Password: </p>
+
+        </div>
+    </div>
 {% endblock %}

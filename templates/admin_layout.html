@@ -36,7 +36,7 @@
                             <a class="nav-link text-white link" href="#">Products</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white link" href="#">Logout</a>
+                            <a class="nav-link text-white link" href="/logout">Logout</a>
                         </li>
                     </ul>
                 </div>
@@ -45,7 +45,7 @@
                     <button class="btn btn-light" id="toggleSidebarButton" onclick="collapse(event)">
                         <i class="bi bi-list"></i> <!-- Bootstrap icon for the hamburger -->
                     </button>
-                    <div class="profile">{{ current_user.full_name }}</div>
+                    <div class="profile">{{ current_user.full_name | title }}</div>
             </div>
             {% block body %}{% endblock %}
         </div>

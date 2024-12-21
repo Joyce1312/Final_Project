@@ -276,3 +276,41 @@ footer {
   .chart table{
     margin: 20px;
   }
+
+  /* User Dasboard */
+  .user_dash{
+    display: flex;
+    flex-direction: column;
+  }
+
+  .welcome{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .user_info {
+    position: relative;
+    padding: 20px;
+}
+
+.user_info h3 {
+    margin: 0;
+    font-size: 1.2em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user_info .edit-link {
+    position: absolute;
+    right: 20px;
+    top: 0;
+    font-size: 0.9em;
+    
+}
+
+.user_info p {
+    margin: 10px 0;
+    font-size: 1em;
+}
