@@ -17,6 +17,9 @@ class User(db.Model):
     role = db.Column(db.String(10), default="user")  # User role (default: user)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('America/New_York')))  # Timestamp in NY timezone
 
+    #Relationship to Cart table with a back-reference named 'cart'
+    cart = db.relationship('Cart', back_populates='user', uselist=False)
+
     # Relationship to Order table with a back-reference named 'orders'
     orders = db.relationship('Order', back_populates='user')
 
@@ -59,6 +62,43 @@ def create_admin_user():
     else:
         print("Admin user already exists.")
 
+#Cart Model
+class Cart(db.Model):
+    __tablename__ = 'carts'
+    id = db.Column(db.Integer, primary_key=True)  # Unique identifier for the cart
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Link to the User who owns the cart
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('America/New_York')))  # Timestamp for when the cart was created
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('America/New_York')), onupdate=lambda: datetime.now(pytz.timezone('America/New_York')))  # Automatically updated timestamp
+
+    # Relationship to User table
+    user = db.relationship('User', back_populates='cart')
+
+    # Relationship to CartItem table
+    items = db.relationship('CartItem', back_populates='cart', cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f'<Cart {self.id} for User {self.user_id}>'
+    
+# CartItem Model
+class CartItem(db.Model):
+    __tablename__ = 'cart_items'
+    id = db.Column(db.Integer, primary_key=True)  # Unique identifier for the cart item
+    cart_id = db.Column(db.Integer, db.ForeignKey('carts.id'), nullable=False)  # Link to the Cart it belongs to
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)  # Link to the Product being added to the cart
+    quantity = db.Column(db.Integer, nullable=False, default=1)  # Quantity of the product in the cart
+    price_at_addition = db.Column(db.Float, nullable=False)  # Price of the product at the time it was added to the cart
+
+    # Relationship to Cart table
+    cart = db.relationship('Cart', back_populates='items')
+
+    # Relationship to Product table
+    product = db.relationship('Product', backref='cart_items')
+
+    def __repr__(self):
+        return f'<CartItem {self.id} (Product {self.product_id}) in Cart {self.cart_id}>'
+
+
+
 # Product Model
 class Product(db.Model):
     __tablename__ = 'products'  # Define table name in the database
@@ -83,7 +123,7 @@ class Order(db.Model):
     status = db.Column(db.String(20), default='pending')  # Order status (e.g., pending, shipped)
     order_number = db.Column(db.String(36), unique=True, nullable=False)  # UUID for unique order number
 
-    # Relationship to User table with a back-reference named 'orders'
+    # Relationship to User table with a back-reference named 'user'
     user = db.relationship('User', back_populates='orders')
 
     # Relationship to OrderItem table with a back-reference named 'items'
@@ -124,4 +164,3 @@ class OrderItem(db.Model):
     # Relationship to Product table
     product = db.relationship('Product', backref='order_items')
 
-# Each model and relationship now includes comments to explain its purpose and implementation.
