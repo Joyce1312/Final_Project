@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from config import Config  #Imports config class from config.py
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from werkzeug.utils import secure_filename
 import os
 
 # Import db from db.py
@@ -30,6 +31,16 @@ login_manager.login_view = 'login'
 
 #Initialize migration extensions
 migrate = Migrate(app, db)
+
+# Define the upload folder and allowed file extensions
+UPLOAD_FOLDER = 'static/images'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Helper function to check allowed file extensions
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 #Activates a session
 Session(app)
@@ -182,6 +193,54 @@ def admin_dashboard():
 
     return render_template("admin_dash.html", total_users = total_users, total_orders = total_orders, total_products_sold = total_products_sold, total_revenue = total_revenue, admin_data = admin_data)
 
+@app.route("/admin/add_products", methods=["GET", "POST"])
+@login_required
+def add_products():
+    #Double check and ensure that the user is an admin
+    if current_user.role != 'admin':
+        redirect("/")
+    #All but the image from the add product form
+    if request.method == 'POST':
+        name = request.form.get("name")
+        description = request.form.get("description")
+        price = request.form.get("price")
+        stock = request.form.get("stock")
+        category = request.form.get("category")
+
+        #Gets the upload image
+        image = request.files.get("image")
+        #Checking if the uploaded file is an image and if it is part of the list of allowed extensions
+        if image and allowed_file(image.filename):
+            # Secure the filename (to prevent directory traversal or unsafe filenames)
+            filename = secure_filename(image.filename)
+            #Defines the full path to where the image will be saved
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            # Save the image to the specified folder
+            image.save(image_path)
+        else:
+            # If the image is not valid (either no image uploaded or invalid file type)
+            flash("Invalid image type. Only JPG, PNG, JPEG, and GIF are allowed.", "error")
+    
+            # Redirect back to the "add product" form if there's an error
+            return redirect("/admin/add_products")
+
+        #Ensures that all fields are filled
+        if not name or not description or not price or not stock or not image:
+            flash("All fields are required", "error")
+            return redirect("/admin/add_products")
+        
+        # Create a new product instance with the image path
+        new_product = Product(name=name, description=description, price=price, stock=stock, category=category, image_url=image_path)
+
+        # Add the product to the database
+        db.session.add(new_product)
+        db.session.commit()
+
+        flash("Product added successfully!", "success")
+        return redirect("/admin/dashboard")  # Redirect to the admin dashboard
+        
+    return render_template("add_products.html")
+
 @app.route("/user/dashboard")
 @login_required
 def user_dashboard():
@@ -192,4 +251,8 @@ def logout():
     # Log out the current user
     logout_user()
     return redirect("/")
+
+
+
+
 

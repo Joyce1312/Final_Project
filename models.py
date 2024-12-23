@@ -107,6 +107,7 @@ class Product(db.Model):
     description = db.Column(db.Text, nullable=False)  # Detailed product description
     price = db.Column(db.Float, nullable=False)  # Product price
     stock = db.Column(db.Integer, nullable=False)  # Quantity available in stock
+    image_url = db.Column(db.String(500))  # Store the image file path
     category = db.Column(db.String, nullable=False)  # Product category
 
 # Order Model

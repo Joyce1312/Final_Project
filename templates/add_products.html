@@ -1,0 +1,40 @@
+{% extends "admin_layout.html" %}
+
+{% block title %}
+    Add Products
+{% endblock %}
+
+{% block body %}
+    <div class="form_container">
+        <form class="add_product" method="POST" action="/admin/add_products">
+            <label for="name">Product Name:</label><br>
+            <input type="text" id="name" name="name" required><br><br>
+
+            <label for="description">Description:</label><br>
+            <textarea id="description" name="description" required></textarea><br><br>
+
+            <label for="price">Price:</label><br>
+            <input type="number" id="price" name="price" required><br><br>
+
+            <label for="stock">Stock Quantity:</label><br>
+            <input type="number" id="stock" name="stock" required><br><br>
+
+            <label for="image">Product Image:</label><br>
+            <input type="file" id="image" name="image" accept="image/*" required><br><br>
+
+
+            <input type="submit" value="Add Product">
+        </form>
+        <div class="flash">
+            <!-- Display flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                    <h6 class="message {{ category }}">{{ message }}</h6>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+{% endblock %}
