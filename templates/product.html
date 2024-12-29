@@ -7,21 +7,21 @@
 {% block body %}
     <div class="product">
         <div class="product-left">
-            <img src="/static/images/best1.png">
+            <img src="{{ url_for('static', filename='images/' + product.image_url.split('/')[-1]) }}" alt="{{ product.name }}">
         </div>
         <div class="product-right">
-            <h1>Candy Cane Crunch</h1>
-            <p class="left">$19.99</p>
+            <h1>{{ product.name }}</h1>
+            <p class="left">${{ product.price }}</p>
             <div>
                 <select id="quantity">
-                    <option value="1">1</option>
-                    <option value="2">1</option>
-                    <option value="3">1</option>
+                    {% for i in range(1, product.stock + 1) %}
+                    <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
                 </select>
                 <button class="add_cart" type="submit">Add to Cart</button>
             </div>
             <h3>Product Description</h3>
-            <p></p>
+            <p style="white-space: pre-line;">{{ product.description }}</p>
         </div>
     </div>
 {% endblock %}

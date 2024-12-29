@@ -61,15 +61,24 @@ def load_user(user_id):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    # Query products that have the category 'best seller'
+    best_sellers = Product.query.filter_by(category="Best Seller").all()
+    return render_template("index.html", best_sellers=best_sellers)
 
 @app.route("/listing")
 def listing():
     return render_template("listing.html")
 
-@app.route("/product")
-def product():
-    return render_template("product.html")
+@app.route("/product/<int:product_id>")
+def product_detail(product_id):
+    # Query the database for the product with the given ID
+    product = Product.query.get(product_id)
+    if not product:
+        flash("Product not found.", "error")
+        return redirect("/")
+
+    return render_template("product.html", product=product)
+
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
