@@ -5,11 +5,20 @@
 {% endblock %}
 
 {% block body %}
-    <body onload="init()">  <!-- Add the onload only here in product.html -->
-        <h1>Product Listing Page</h1>
-        <p>Here are our amazing products!</p>
-        <div id="output">
-            
+<body>  
+    <h1>Product Listing Page</h1>
+    <p>Here are our amazing products!</p>
+    <div id="list">
+        {% for product in products %}
+        <div class="product-item">
+            <img src="{{ url_for('static', filename='images/' + product.image_url.split('/')[-1]) }}" alt="{{ product.name }}">
+            <h3>{{ product.name }}</h3>
+            <p>${{ product.price }}</p>
+            <a href="/product/{{ product.id }}">View Details</a>
         </div>
-    </body>
+        {% else %}
+        <p>No products available at the moment.</p>
+        {% endfor %}
+    </div>
+</body>
 {% endblock %}

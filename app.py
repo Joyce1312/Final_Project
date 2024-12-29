@@ -65,9 +65,24 @@ def index():
     best_sellers = Product.query.filter_by(category="Best Seller").all()
     return render_template("index.html", best_sellers=best_sellers)
 
+@app.route("/search", methods=["GET"])
+def search():
+    query = request.args.get("query", "").strip()
+    if query:
+        # Search for products where the name or description contains the query
+        results = Product.query.filter(
+            (Product.name.ilike(f"%{query}%")) | (Product.description.ilike(f"%{query}%"))).all()
+    else:
+        results = []  # No results if the query is empty
+
+    return render_template("listing.html", query=query, products=results)
+
+
 @app.route("/listing")
 def listing():
-    return render_template("listing.html")
+    # Query the database for all products
+    all_products = Product.query.all()
+    return render_template("listing.html", products=all_products)
 
 @app.route("/product/<int:product_id>")
 def product_detail(product_id):

@@ -78,15 +78,24 @@ footer {
 }
 
 /* Product Page */
-.card{
-    width: 30%;
-}
-
-#output{
+#list{
     display: flex;
+    flex-direction: row;
     justify-content: space-around; /* Spread out the best seller items */
     gap: 20px;
     flex-wrap: wrap;
+    flex: 3;
+}
+
+.product-item{
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+}
+
+.product-item img{
+    width: 70%;
+    height: 60%;
 }
 
 /* Login Page */
@@ -143,7 +152,6 @@ footer {
 .add_cart{
     border-radius: 5px;
     width: 30%;
-    max-height: 5%;
     margin-left: 10px;
 }
 
@@ -359,6 +367,7 @@ footer {
 
 .admin_product img{
     width: 70%;
+    height: 60%;
 }
 
 .product-list{
