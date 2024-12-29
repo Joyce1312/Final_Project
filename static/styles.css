@@ -315,6 +315,7 @@ footer {
     font-size: 1em;
 }
 
+/*Add Product*/
 .form_container{
     width: 80%;
     margin: 0 auto;
@@ -331,6 +332,44 @@ footer {
     border-radius: 5px;        /* Rounds the corners */
     font-size: 1em;              
 }
+
+/*Admin Listing*/
+.delete-button {
+    background-color: #f44336;  /* Red color */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.delete-button:hover {
+    background-color: #d32f2f;  /* Darker red when hovered */
+}
+
+.admin_product{
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+}
+
+.admin_product img{
+    width: 70%;
+}
+
+.product-list{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around; /* Spread out the best seller items */
+    gap: 20px;
+    flex-wrap: wrap;
+    flex: 3;
+}
+
 
 
 

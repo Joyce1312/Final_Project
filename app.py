@@ -38,9 +38,10 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Helper function to check allowed file extensions
+# Helper function to check allowed file extensions (case-insensitive)
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {ext.lower() for ext in ALLOWED_EXTENSIONS}
+
 
 #Activates a session
 Session(app)
@@ -227,7 +228,7 @@ def add_products():
         #Ensures that all fields are filled
         if not name or not description or not price or not stock or not image:
             flash("All fields are required", "error")
-            return redirect("/admin/add_products")
+            return redirect("/admin/listing")
         
         # Create a new product instance with the image path
         new_product = Product(name=name, description=description, price=price, stock=stock, category=category, image_url=image_path)
@@ -237,9 +238,43 @@ def add_products():
         db.session.commit()
 
         flash("Product added successfully!", "success")
-        return redirect("/admin/dashboard")  # Redirect to the admin dashboard
+        return redirect("/admin/listing")  # Redirect to the admin dashboard
         
     return render_template("add_products.html")
+
+@app.route("/admin/listing")
+@login_required
+def admin_listing():
+    # Ensure the user is logged in and is an admin
+    if current_user.role != 'admin':
+        return redirect("/")
+
+    # Query all products from the database
+    products = Product.query.all()  # Get all products
+
+    return render_template("admin_listing.html", products=products)
+
+@app.route("/admin/delete_product/<int:product_id>", methods=["POST"])
+@login_required
+def delete_product(product_id):
+    # Ensure the user is an admin
+    if current_user.role != 'admin':
+        flash("You are not authorized to delete products.", "error")
+        return redirect("/")
+
+    # Fetch the product by its id
+    product = Product.query.get(product_id)
+    
+    # If the product exists, delete it
+    if product:
+        db.session.delete(product)
+        db.session.commit()
+        flash("Product deleted successfully.", "success")
+    else:
+        flash("Product not found.", "error")
+
+    return redirect("/admin/listing")  # Redirect back to the listing page
+
 
 @app.route("/user/dashboard")
 @login_required
