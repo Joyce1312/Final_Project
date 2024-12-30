@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Order Comfirmation
+{% endblock %}
+
+{% block body %}
+    <style>
+        table {
+            width: 100%; /* Optional: Ensures the table takes up the full width of its container */
+            border-collapse: separate; /* Ensures spacing between columns */
+        }
+
+        td {
+            padding-left: 5px; /* Adds space inside each cell */
+        }
+
+        th {
+            padding-left: 5px; /* Optional: Adds space to the header cells */
+        }
+    </style>
+    <div class="container">
+        <h1>Your Orders</h1>
+        
+        {% if orders %}
+            {% for order in orders %}
+            <div class="order-summary">
+                <p><strong>Order Number:</strong> {{ order.order_number }}</p>
+                <p><strong>Order Date:</strong> {{ order.order_date }}</p>
+                <p><strong>Status:</strong> {{ order.status }}</p>
+                
+                <h3>Items:</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>${{ "%.2f" | format(item.price_at_purchase) }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>${{ "%.2f" | format(item.price_at_purchase * item.quantity) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <p><strong>Total Items:</strong> {{ order.total_items }}</p>
+                <p><strong>Total Price:</strong> ${{ "%.2f" | format(order.total_price) }}</p>
+            </div>
+            <hr>
+            {% endfor %}
+        {% else %}
+            <p>You have no orders at the moment.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+

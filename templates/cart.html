@@ -56,7 +56,7 @@
         
         <h2>Total: ${{ "%.2f"|format(total_price) }}</h2>
         
-        <form action="/checkout" method="post">
+        <form action="{% if current_user.is_authenticated %}/checkout{% else %}/guest/checkout{% endif %}" method="post">
             <button type="submit">Proceed to Checkout</button>
         </form>
         

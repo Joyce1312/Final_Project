@@ -17,4 +17,3 @@ function collapse(event){
     // Toggle the 'collapsed' class on the sidebar
     sidebar.classList.toggle('collapsed');
 }
-

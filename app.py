@@ -306,6 +306,7 @@ def delete_product(product_id):
 def user_dashboard():
     return render_template("user_dash.html")
 
+### User Cart Routes ###
 @app.route("/user/add_to_cart/<int:product_id>", methods=["POST"])
 @login_required
 def add_to_cart_user(product_id):
@@ -527,6 +528,101 @@ def view_cart_guest():
     # Render the cart template for guests
     return render_template("cart.html", cart_items=cart_items, total_price=total_price)
 
+### Checkout Routes ###
+@app.route("/checkout", methods=["POST"])
+@login_required
+def checkout_user():
+    cart = Cart.query.filter_by(user_id=current_user.id, is_active=True).first()
+
+    if not cart or not cart.items:
+        flash("Your cart is empty! Add items to proceed to checkout.", "danger")
+        return redirect("/user/cart")
+
+    # Create a new order
+    new_order = Order(
+        user_id=current_user.id,
+        total_price=sum(item.product.price * item.quantity for item in cart.items),
+        total_items=sum(item.quantity for item in cart.items),
+    )
+    db.session.add(new_order)
+    db.session.flush()  # Flush to get the order ID for the items
+
+    # Add order items from the cart
+    for cart_item in cart.items:
+        order_item = OrderItem(
+            order_id=new_order.id,
+            product_id=cart_item.product_id,
+            quantity=cart_item.quantity,
+            price_at_purchase=cart_item.product.price,
+        )
+        db.session.add(order_item)
+
+        # Reduce stock for each product
+        cart_item.product.stock -= cart_item.quantity
+        if cart_item.product.stock < 0:
+            flash(f"Not enough stock for {cart_item.product.name}!", "danger")
+            db.session.rollback()
+            return redirect("/user/cart")
+
+    # Empty the user's cart after checkout
+    db.session.delete(cart)
+    db.session.commit()
+
+    flash("Order placed successfully!", "success")
+    return redirect("/orders")
+
+@app.route("/orders")
+@login_required
+def view_orders():
+    orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.order_date.desc()).all()
+    return render_template("orders_comfirmation.html", orders=orders)
+
+
+
+@app.route("/guest/checkout", methods=["POST"])
+def checkout_guest():
+    # Retrieve the cart from the session
+    cart_items = session.get("cart", {})
+    print("Cart content during checkout:", cart_items)  # Debugging output
+
+    # Check if the cart is empty
+    if not cart_items:
+        flash("Your cart is empty!", "danger")
+        return redirect("/cart")
+
+    # Validate cart items to ensure proper format
+    valid_items = []
+    for item in cart_items.values():
+        if isinstance(item, dict) and "price" in item and "quantity" in item:
+            # Add item to valid_items if it has the necessary keys
+            valid_items.append(item)
+
+    # Handle invalid cart data
+    if not valid_items:
+        print("Invalid cart items detected:", cart_items)  # Debugging output
+        flash("Invalid cart data. Please try again.", "danger")
+        return redirect("/cart")
+
+    # Calculate the total price
+    total_price = sum(item["price"] * item["quantity"] for item in valid_items)
+
+    # Calculate the total number of items
+    total_items = sum(item["quantity"] for item in valid_items)
+
+    # Order summary for the confirmation page
+    order_summary = {
+        "items": valid_items,
+        "total_price": total_price,
+        "total_items": total_items
+    }
+
+    # Clear the cart after checkout
+    session.pop("cart", None)
+    session.modified = True
+
+    # Render the guest confirmation page
+    return render_template("guest_comfirmation.html", order_summary=order_summary)
+
 
 
 @app.route("/logout")
@@ -539,159 +635,3 @@ def logout():
 
 
 
-"""
-@app.route("/user/add_to_cart/<int:product_id>", methods=["POST"])
-@login_required
-def add_to_cart(product_id):
-    quantity = int(request.form.get("quantity", 1))
-    product = Product.query.get_or_404(product_id)
-    
-    # Check if the cart exists in the session
-    if "cart" not in session:
-        session["cart"] = []
-
-    # Add the product and quantity to the cart
-    session["cart"].append({
-        "id": product.id,
-        "name": product.name,
-        "price": product.price,
-        "quantity": quantity,
-        "image_url": product.image_url,
-    })
-
-    session.modified = True  # Mark the session as modified
-    flash(f"{product.name} (x{quantity}) added to your cart!", "success")
-    return redirect("/user/cart")
-
-@app.route("/user/edit_cart/<int:product_id>", methods=["POST"])
-@login_required
-def edit_user_cart(product_id):
-    # Get the new quantity from the form
-    new_quantity = int(request.form.get("quantity"))
-    
-    # Fetch the product from the database to get stock quantity
-    product = Product.query.get_or_404(product_id)
-    stock_quantity = product.stock  # Get available stock
-    
-    # Ensure the quantity does not exceed available stock
-    if new_quantity > stock_quantity:
-        new_quantity = stock_quantity  # Set quantity to available stock if it's too high
-
-    # Update the quantity in the session cart
-    for item in session.get("cart", []):
-        if item["id"] == product_id:
-            item["quantity"] = new_quantity
-            break
-    session.modified = True  # Mark the session as modified
-    
-    flash(f"Cart updated: {product.name} (x{new_quantity})", "success")
-    
-    return redirect("/user/cart")
-
-
-@app.route("/user/remove_from_cart/<int:product_id>")
-@login_required
-def remove_from_user_cart(product_id):
-    # Check if the cart exists in the session
-    if "cart" in session:
-        # Remove the product with the given product_id
-        session["cart"] = [item for item in session["cart"] if item["id"] != product_id]
-        session.modified = True  # Mark the session as modified
-        flash("Item removed from your cart!", "success")
-    
-    return redirect("/user/cart")
-
-
-
-@app.route("/user/cart")
-@login_required  # This ensures that only logged-in users can access the cart
-def cart_user():
-    cart_items = session.get("cart", [])
-    
-    # Fetch the stock quantity for each product in the cart
-    for item in cart_items:
-        product = Product.query.get(item["id"])  # Get the product from the database
-        if product:  # Ensure the product exists
-            item["stock_quantity"] = product.stock  # Add the stock quantity to the cart item
-    
-    # Calculate the total price of the items in the cart
-    total_price = sum(item["price"] * item["quantity"] for item in cart_items)
-    
-    return render_template("cart.html", cart_items=cart_items, total_price=total_price)
-
-
-@app.route("/guest/add_to_cart/<int:product_id>", methods=["POST"])
-def guest_add_to_cart(product_id):
-    quantity = int(request.form.get("quantity", 1))
-    product = Product.query.get_or_404(product_id)
-    
-    # Check if the cart exists in the session
-    if "cart" not in session:
-        session["cart"] = []
-
-    # Add the product and quantity to the cart
-    session["cart"].append({
-        "id": product.id,
-        "name": product.name,
-        "price": product.price,
-        "quantity": quantity,
-        "image_url": product.image_url,
-    })
-
-    session.modified = True  # Mark the session as modified
-    flash(f"{product.name} (x{quantity}) added to your cart!", "success")
-    return redirect("/cart")
-
-@app.route("/guest/remove_from_cart/<int:product_id>")
-def remove_from_guest_cart(product_id):
-    # Check if the cart exists in the session
-    if "cart" in session:
-        # Remove the product with the given product_id
-        session["cart"] = [item for item in session["cart"] if item["id"] != product_id]
-        session.modified = True  # Mark the session as modified
-        flash("Item removed from your cart!", "success")
-    
-    return redirect("/cart")
-
-@app.route("/guest/edit_cart/<int:product_id>", methods=["POST"])
-def edit_guest_cart(product_id):
-    # Get the new quantity from the form
-    new_quantity = int(request.form.get("quantity"))
-    
-    # Fetch the product from the database to get stock quantity
-    product = Product.query.get_or_404(product_id)
-    stock_quantity = product.stock  # Get available stock
-    
-    # Ensure the quantity does not exceed available stock
-    if new_quantity > stock_quantity:
-        new_quantity = stock_quantity  # Set quantity to available stock if it's too high
-
-    # Update the quantity in the session cart
-    for item in session.get("cart", []):
-        if item["id"] == product_id:
-            item["quantity"] = new_quantity
-            break
-    session.modified = True  # Mark the session as modified
-    
-    flash(f"Cart updated: {product.name} (x{new_quantity})", "success")
-    
-    return redirect("/cart")
-
-
-
-
-@app.route("/cart")
-def cart_guest():
-    cart_items = session.get("cart", [])
-    
-    # Fetch the stock quantity for each product in the cart
-    for item in cart_items:
-        product = Product.query.get(item["id"])  # Get the product from the database
-        if product:  # Ensure the product exists
-            item["stock_quantity"] = product.stock  # Add the stock quantity to the cart item
-    
-    # Calculate the total price of the items in the cart
-    total_price = sum(item["price"] * item["quantity"] for item in cart_items)
-    
-    return render_template("cart.html", cart_items=cart_items, total_price=total_price)
-"""

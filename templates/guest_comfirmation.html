@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Order Comfirmation
+{% endblock %}
+
+{% block body %}
+    <style>
+        table {
+            width: 100%; /* Optional: Ensures the table takes up the full width of its container */
+            border-collapse: separate; /* Ensures spacing between columns */
+        }
+
+        td {
+            padding-left: 5px; /* Adds space inside each cell */
+        }
+
+        th {
+            padding-left: 5px; /* Optional: Adds space to the header cells */
+        }
+    </style>
+    <div class="container">
+        <h1>Thank You for Your Order!</h1>
+        <p>Your order has been placed successfully.</p>
+
+        <h2>Order Summary</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order_summary['items'] %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>${{ "%.2f" | format(item.price) }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ "%.2f" | format(item.price * item.quantity) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Total Items: {{ order_summary.total_items }}</h3>
+        <h3>Total Price: ${{ "%.2f" | format(order_summary.total_price) }}</h3>
+
+        <p>As a guest, your order cannot be tracked. Please contact support if you have any questions.</p>
+    </div>
+{% endblock %}
