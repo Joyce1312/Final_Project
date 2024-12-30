@@ -207,10 +207,10 @@ def admin_dashboard():
     total_orders = Order.query.count()
 
     #Get total products sold
-    total_products_sold = db.session.query(db.func.sum(OrderItem.quantity)).scalar() or 0
+    total_products_sold = db.session.query(db.func.sum(OrderItem.quantity)).join(Order, Order.id == OrderItem.order_id).filter(Order.status == 'Delivered').scalar() or 0
 
     #Get total revenue made (sum of total price from all orders)
-    total_revenue = db.session.query(db.func.sum(Order.total_price)).scalar() or 0
+    total_revenue = db.session.query(db.func.sum(Order.total_price)).filter(Order.status == 'Delivered').scalar() or 0
 
     #Get all admin users
     admins = User.query.filter_by(role='admin').all()
@@ -218,6 +218,36 @@ def admin_dashboard():
     admin_data = [(admin.full_name, admin.email) for admin in admins]
 
     return render_template("admin_dash.html", total_users = total_users, total_orders = total_orders, total_products_sold = total_products_sold, total_revenue = total_revenue, admin_data = admin_data)
+
+@app.route('/admin/create_admin', methods=['POST'])
+def create_admin():
+    """
+    Test 2nd Admin created
+    test@example.com
+    testing
+    """
+    first = request.form.get("first")
+    last = request.form.get("last")
+    email = request.form.get("email")
+    password = request.form.get("password")
+
+    # Check if the email already exists
+    existing_admin = User.query.filter((User.email == email)).first()
+    if existing_admin:
+        flash('Email already exists. Please choose a different one.', 'error')
+        return redirect("/admin/dashboard")
+
+    # Hash the password for security
+    hashed_password = generate_password_hash(password)
+
+    # Create new admin account
+    new_admin = User(first_name=first, last_name=last, email=email, role='admin', password_hash=hashed_password)
+    
+    # Add the new admin to the database
+    db.session.add(new_admin)
+    db.session.commit()
+
+    return redirect("/admin/dashboard")
 
 @app.route("/admin/add_products", methods=["GET", "POST"])
 @login_required
