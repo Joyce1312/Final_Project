@@ -300,6 +300,23 @@ def delete_product(product_id):
 
     return redirect("/admin/listing")  # Redirect back to the listing page
 
+@app.route('/admin/orders', methods=['GET', 'POST'])
+def admin_orders():
+    if request.method == 'POST':
+        # Handle order status update
+        order_id = request.form.get('order_id')
+        new_status = request.form.get('status')
+        order = Order.query.get(order_id)
+        
+        if order:
+            order.status = new_status
+            db.session.commit()
+            return redirect("/admin/orders")
+
+    # Fetch all users and their orders
+    users = User.query.filter_by(role='user').all()
+    return render_template("admin_orders.html", users=users)
+
 
 @app.route("/user/dashboard")
 @login_required
