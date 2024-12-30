@@ -5,10 +5,63 @@
 {% endblock %}
 
 {% block body %}
-    <div>
-       <h2>My Cart</h2> 
-       <div>
+    <h1>Your Cart</h1>
+
+    {% if cart_items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                    <tr>
+                        <td><img src="{% if current_user.is_authenticated %}{{ url_for('static', filename='images/' + item.product.image_url.split('/')[-1]) }}{% else %}{{ url_for('static', filename='images/' + item.image_url.split('/')[-1]) }}{% endif %}" alt="Product Image" width="50"></td>
+                        <td>{{ item.name }}</td>
+                        <td>${{ item.price }}</td>
+                        <td>
+                            <form action="{% if current_user.is_authenticated %}/user/edit_cart/{{ item.id }}{% else %}/guest/edit_cart/{{ item.id }}{% endif %}" method="POST">
+                                <select id="quantity-{{ item.id }}" name="quantity">
+                                    {% if current_user.is_authenticated %}
+                                        <!-- Use item.product.stock for logged-in users -->
+                                        {% for i in range(1, item.product.stock + 1) %}
+                                            <option value="{{ i }}" {% if i == item.quantity %} selected {% endif %}>{{ i }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <!-- Use item.stock for guest users -->
+                                        {% for i in range(1, item.stock + 1) %}
+                                            <option value="{{ i }}" {% if i == item.quantity %} selected {% endif %}>{{ i }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                                <button class="update_quantity" type="submit">Update Quantity</button>
+                            </form>
+                        </td>
+                        <td>${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                        <td>
+                            <form action="{% if current_user.is_authenticated %}/user/remove_from_cart/{{ item.product.id }}{% else %}/guest/remove_from_cart/{{ item.id }}{% endif %}" method="POST">
+                                <button type="submit" class="btn btn-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         
-       </div>
-    </div>
+        <h2>Total: ${{ "%.2f"|format(total_price) }}</h2>
+        
+        <form action="/checkout" method="post">
+            <button type="submit">Proceed to Checkout</button>
+        </form>
+        
+    {% else %}
+        <p>Your cart is empty!</p>
+    {% endif %}
+
 {% endblock %}

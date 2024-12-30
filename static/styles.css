@@ -379,6 +379,11 @@ footer {
     flex: 3;
 }
 
+.update_quantity{
+    border-radius: 5px;
+    margin-left: 10px;
+}
+
 
 
 

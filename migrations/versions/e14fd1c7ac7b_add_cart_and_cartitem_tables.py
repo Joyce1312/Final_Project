@@ -31,11 +31,19 @@ def upgrade():
     sa.Column('cart_id', sa.Integer(), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
-    sa.Column('price_at_addition', sa.Float(), nullable=False),
+    sa.Column('price_at_addition', sa.Float(), nullable=False),  # Old column to be replaced
+    sa.Column('price', sa.Float(), nullable=True),  # New column
     sa.ForeignKeyConstraint(['cart_id'], ['carts.id'], ),
     sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+
+    # Migrate the data from `price_at_addition` to `price`
+    op.execute('UPDATE cart_items SET price = price_at_addition')
+
+    # Drop the `price_at_addition` column after the data migration
+    with op.batch_alter_table('cart_items', schema=None) as batch_op:
+        batch_op.drop_column('price_at_addition')
     # ### end Alembic commands ###
 
 

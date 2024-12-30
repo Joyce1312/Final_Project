@@ -7,6 +7,7 @@ from config import Config  #Imports config class from config.py
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.utils import secure_filename
 import os
+from sqlalchemy.orm import joinedload
 
 # Import db from db.py
 from db import db
@@ -305,6 +306,229 @@ def delete_product(product_id):
 def user_dashboard():
     return render_template("user_dash.html")
 
+@app.route("/user/add_to_cart/<int:product_id>", methods=["POST"])
+@login_required
+def add_to_cart_user(product_id):
+    # Get the product to get the price
+    product = Product.query.get_or_404(product_id)
+    
+    # Get the current cart (assuming one cart per user)
+    cart = Cart.query.filter_by(user_id=current_user.id, is_active=True).first()
+    if not cart:
+        # Create a new cart if it doesn't exist
+        cart = Cart(user_id=current_user.id)
+        db.session.add(cart)
+        db.session.commit()
+
+    # Check if the product is already in the cart
+    cart_item = CartItem.query.filter_by(cart_id=cart.id, product_id=product.id).first()
+
+    if cart_item:
+        # If item already exists, update the quantity
+        cart_item.quantity += int(request.form.get('quantity', 1))
+    else:
+        # Add the new product to the cart
+        cart_item = CartItem(cart_id=cart.id, product_id=product.id, 
+                             quantity=int(request.form.get('quantity', 1)),
+                             price=product.price)  # Store the product price
+        db.session.add(cart_item)
+
+    db.session.commit()
+    flash(f"{product.name} added to your cart!", "success")
+    return redirect("/user/cart")
+
+
+
+@app.route("/user/edit_cart/<int:product_id>", methods=["POST"])
+@login_required
+def edit_cart_user(product_id):
+    new_quantity = int(request.form.get("quantity"))
+    product = Product.query.get_or_404(product_id)
+
+    cart = Cart.query.filter_by(user_id=current_user.id, is_active=True).first()
+    if not cart:
+        flash("No active cart found!", "danger")
+        return redirect("/user/cart")
+
+    cart_item = CartItem.query.filter_by(cart_id=cart.id, product_id=product.id).first()
+    if cart_item:
+        if new_quantity == 0:
+            db.session.delete(cart_item)
+        else:
+            cart_item.quantity = min(new_quantity, product.stock)
+        db.session.commit()
+        flash(f"Cart updated: {product.name} (x{new_quantity})", "success")
+    else:
+        flash("Item not found in your cart!", "danger")
+
+    return redirect("/user/cart")
+
+
+@app.route("/user/remove_from_cart/<int:product_id>", methods=["POST"])
+@login_required
+def remove_from_cart_user(product_id):
+    # Fetch the active cart of the current user
+    cart = Cart.query.filter_by(user_id=current_user.id, is_active=True).first()
+    
+    # If no active cart exists
+    if not cart:
+        flash("No active cart found!", "danger")
+        return redirect("/user/cart")
+
+    # Log cart items before deletion attempt
+    cart_items = CartItem.query.filter_by(cart_id=cart.id).all()
+    
+    # Check if the product exists in the cart
+    cart_item = CartItem.query.filter_by(cart_id=cart.id, product_id=product_id).first()
+
+    if cart_item:
+        db.session.delete(cart_item)
+        db.session.commit()
+        flash("Item removed from your cart!", "success")
+    else:
+        flash(f"Product {product_id} not found in the cart.", "danger")
+
+    # Log cart items after removal attempt
+    cart_items = CartItem.query.filter_by(cart_id=cart.id).all()
+
+    # Optionally deactivate cart if it's empty
+    if not cart_items:
+        cart.is_active = False
+        db.session.commit()
+
+    return redirect("/user/cart")
+
+
+
+
+
+@app.route("/user/cart")
+@login_required
+def view_cart_user():
+    # Query the cart and load associated items and product details with a joinedload
+    cart = Cart.query.filter_by(user_id=current_user.id, is_active=True).options(
+        joinedload(Cart.items).joinedload(CartItem.product)
+    ).first()
+
+    # If cart exists, load items, otherwise return an empty list
+    cart_items = cart.items if cart else []
+
+    # Calculate the total price of the cart
+    total_price = sum(item.product.price * item.quantity for item in cart_items)
+
+    return render_template("cart.html", cart_items=cart_items, total_price=total_price)
+
+
+
+### Guest Cart Routes ###
+@app.route("/guest/add_to_cart/<int:product_id>", methods=["POST"])
+def add_to_cart_guest(product_id):
+    # Get the product to get the price
+    product = Product.query.get_or_404(product_id)
+    
+    # Initialize the guest cart in session if it doesn't exist
+    if "cart" not in session or not isinstance(session["cart"], dict):
+        session["cart"] = {}  # Initialize as a dictionary if not already a dictionary
+    
+    # Check if the product is already in the cart
+    if product_id in session["cart"]:
+        # If item already exists, update the quantity
+        session["cart"][product_id]["quantity"] += int(request.form.get("quantity", 1))
+    else:
+        # Add the new product to the cart
+        session["cart"][product_id] = {
+            "quantity": int(request.form.get("quantity", 1)),
+            "name": product.name,
+            "price": product.price,
+            "image_url": product.image_url,  # Assuming you have image_url in your Product model
+        }
+    
+    # Mark session as modified to ensure it's saved
+    session.modified = True
+    flash(f"{product.name} added to your cart!", "success")
+    
+    # Redirect to the cart page for guests
+    return redirect("/cart")
+
+
+
+
+
+@app.route("/guest/edit_cart/<int:product_id>", methods=["POST"])
+def edit_cart_guest(product_id):
+    cart = session.get("cart", {})  # Get the current cart from session
+
+    # Check if the product is in the cart
+    if product_id in cart:
+        new_quantity = int(request.form.get('quantity', 1))  # Get the new quantity from the form
+        product = Product.query.get(product_id)  # Query the product to check its stock
+        if new_quantity > product.stock:
+            flash("Cannot exceed stock quantity!", "danger")
+            return redirect("/cart")  # Redirect if quantity exceeds stock
+        
+        # Update the quantity in the cart
+        cart[product_id]["quantity"] = new_quantity
+
+    # Save the updated cart back to session
+    session["cart"] = cart
+    session.modified = True  # Ensure session is updated
+
+    flash("Cart updated!", "success")
+    return redirect("/cart")  # Redirect back to the cart page
+
+
+
+@app.route("/guest/remove_from_cart/<int:product_id>", methods=["POST"])
+def remove_from_cart_guest(product_id):
+    cart = session.get("cart", {})  # Get the current cart from session
+
+    # Check if the product is in the cart
+    if product_id in cart:
+        del cart[product_id]  # Remove the product from the cart
+
+    # Save the updated cart back to session
+    session["cart"] = cart
+    session.modified = True  # Ensure session is updated
+
+    flash("Item removed from cart!", "success")
+    return redirect("/cart")  # Redirect back to the cart page
+
+
+
+
+@app.route("/cart")
+def view_cart_guest():
+    # Get the cart from session (stored as a dictionary of product ids as keys)
+    cart = session.get("cart", {})
+
+    # Ensure cart is a dictionary, if it's not, initialize it
+    if not isinstance(cart, dict):
+        cart = {}
+
+    # Prepare the cart items with product details from the session
+    cart_items = []
+    for pid, details in cart.items():  # Now cart is expected to be a dictionary
+        # Query the Product model to get the product details by ID
+        product = Product.query.get(pid)
+        if product:
+            # Append the product details to the cart_items list
+            cart_items.append({
+                "id": pid,
+                "name": product.name,
+                "price": product.price,
+                "quantity": details["quantity"],  # details["quantity"] from the session
+                "stock": product.stock,
+                "image_url": product.image_url,
+            })
+
+    # Calculate the total price
+    total_price = sum(item["price"] * item["quantity"] for item in cart_items)
+
+    # Render the cart template for guests
+    return render_template("cart.html", cart_items=cart_items, total_price=total_price)
+
+
+
 @app.route("/logout")
 def logout():
     # Log out the current user
@@ -315,3 +539,159 @@ def logout():
 
 
 
+"""
+@app.route("/user/add_to_cart/<int:product_id>", methods=["POST"])
+@login_required
+def add_to_cart(product_id):
+    quantity = int(request.form.get("quantity", 1))
+    product = Product.query.get_or_404(product_id)
+    
+    # Check if the cart exists in the session
+    if "cart" not in session:
+        session["cart"] = []
+
+    # Add the product and quantity to the cart
+    session["cart"].append({
+        "id": product.id,
+        "name": product.name,
+        "price": product.price,
+        "quantity": quantity,
+        "image_url": product.image_url,
+    })
+
+    session.modified = True  # Mark the session as modified
+    flash(f"{product.name} (x{quantity}) added to your cart!", "success")
+    return redirect("/user/cart")
+
+@app.route("/user/edit_cart/<int:product_id>", methods=["POST"])
+@login_required
+def edit_user_cart(product_id):
+    # Get the new quantity from the form
+    new_quantity = int(request.form.get("quantity"))
+    
+    # Fetch the product from the database to get stock quantity
+    product = Product.query.get_or_404(product_id)
+    stock_quantity = product.stock  # Get available stock
+    
+    # Ensure the quantity does not exceed available stock
+    if new_quantity > stock_quantity:
+        new_quantity = stock_quantity  # Set quantity to available stock if it's too high
+
+    # Update the quantity in the session cart
+    for item in session.get("cart", []):
+        if item["id"] == product_id:
+            item["quantity"] = new_quantity
+            break
+    session.modified = True  # Mark the session as modified
+    
+    flash(f"Cart updated: {product.name} (x{new_quantity})", "success")
+    
+    return redirect("/user/cart")
+
+
+@app.route("/user/remove_from_cart/<int:product_id>")
+@login_required
+def remove_from_user_cart(product_id):
+    # Check if the cart exists in the session
+    if "cart" in session:
+        # Remove the product with the given product_id
+        session["cart"] = [item for item in session["cart"] if item["id"] != product_id]
+        session.modified = True  # Mark the session as modified
+        flash("Item removed from your cart!", "success")
+    
+    return redirect("/user/cart")
+
+
+
+@app.route("/user/cart")
+@login_required  # This ensures that only logged-in users can access the cart
+def cart_user():
+    cart_items = session.get("cart", [])
+    
+    # Fetch the stock quantity for each product in the cart
+    for item in cart_items:
+        product = Product.query.get(item["id"])  # Get the product from the database
+        if product:  # Ensure the product exists
+            item["stock_quantity"] = product.stock  # Add the stock quantity to the cart item
+    
+    # Calculate the total price of the items in the cart
+    total_price = sum(item["price"] * item["quantity"] for item in cart_items)
+    
+    return render_template("cart.html", cart_items=cart_items, total_price=total_price)
+
+
+@app.route("/guest/add_to_cart/<int:product_id>", methods=["POST"])
+def guest_add_to_cart(product_id):
+    quantity = int(request.form.get("quantity", 1))
+    product = Product.query.get_or_404(product_id)
+    
+    # Check if the cart exists in the session
+    if "cart" not in session:
+        session["cart"] = []
+
+    # Add the product and quantity to the cart
+    session["cart"].append({
+        "id": product.id,
+        "name": product.name,
+        "price": product.price,
+        "quantity": quantity,
+        "image_url": product.image_url,
+    })
+
+    session.modified = True  # Mark the session as modified
+    flash(f"{product.name} (x{quantity}) added to your cart!", "success")
+    return redirect("/cart")
+
+@app.route("/guest/remove_from_cart/<int:product_id>")
+def remove_from_guest_cart(product_id):
+    # Check if the cart exists in the session
+    if "cart" in session:
+        # Remove the product with the given product_id
+        session["cart"] = [item for item in session["cart"] if item["id"] != product_id]
+        session.modified = True  # Mark the session as modified
+        flash("Item removed from your cart!", "success")
+    
+    return redirect("/cart")
+
+@app.route("/guest/edit_cart/<int:product_id>", methods=["POST"])
+def edit_guest_cart(product_id):
+    # Get the new quantity from the form
+    new_quantity = int(request.form.get("quantity"))
+    
+    # Fetch the product from the database to get stock quantity
+    product = Product.query.get_or_404(product_id)
+    stock_quantity = product.stock  # Get available stock
+    
+    # Ensure the quantity does not exceed available stock
+    if new_quantity > stock_quantity:
+        new_quantity = stock_quantity  # Set quantity to available stock if it's too high
+
+    # Update the quantity in the session cart
+    for item in session.get("cart", []):
+        if item["id"] == product_id:
+            item["quantity"] = new_quantity
+            break
+    session.modified = True  # Mark the session as modified
+    
+    flash(f"Cart updated: {product.name} (x{new_quantity})", "success")
+    
+    return redirect("/cart")
+
+
+
+
+@app.route("/cart")
+def cart_guest():
+    cart_items = session.get("cart", [])
+    
+    # Fetch the stock quantity for each product in the cart
+    for item in cart_items:
+        product = Product.query.get(item["id"])  # Get the product from the database
+        if product:  # Ensure the product exists
+            item["stock_quantity"] = product.stock  # Add the stock quantity to the cart item
+    
+    # Calculate the total price of the items in the cart
+    total_price = sum(item["price"] * item["quantity"] for item in cart_items)
+    
+    return render_template("cart.html", cart_items=cart_items, total_price=total_price)
+"""

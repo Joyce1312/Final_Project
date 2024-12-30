@@ -13,12 +13,15 @@
             <h1>{{ product.name }}</h1>
             <p class="left">${{ product.price }}</p>
             <div>
-                <select id="quantity">
-                    {% for i in range(1, product.stock + 1) %}
-                    <option value="{{ i }}">{{ i }}</option>
-                    {% endfor %}
-                </select>
-                <button class="add_cart" type="submit">Add to Cart</button>
+                <form action="{% if current_user.is_authenticated %}/user/add_to_cart/{{ product.id }}{% else %}/guest/add_to_cart/{{ product.id }}{% endif %}" method="post">
+                    <label for="quantity">Quantity:</label>
+                    <select id="quantity" name="quantity">
+                        {% for i in range(1, product.stock + 1) %}
+                            <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="add_cart" type="submit">Add to Cart</button>
+                </form>
             </div>
             <h3>Product Description</h3>
             <p style="white-space: pre-line;">{{ product.description }}</p>

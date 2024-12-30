@@ -62,19 +62,23 @@ def create_admin_user():
     else:
         print("Admin user already exists.")
 
-#Cart Model
 class Cart(db.Model):
     __tablename__ = 'carts'
+    
     id = db.Column(db.Integer, primary_key=True)  # Unique identifier for the cart
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Link to the User who owns the cart
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('America/New_York')))  # Timestamp for when the cart was created
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('America/New_York')), onupdate=lambda: datetime.now(pytz.timezone('America/New_York')))  # Automatically updated timestamp
-
+    is_active = db.Column(db.Boolean, default=True)  # Indicates if the cart is active
+    
     # Relationship to User table
     user = db.relationship('User', back_populates='cart')
 
     # Relationship to CartItem table
     items = db.relationship('CartItem', back_populates='cart', cascade="all, delete-orphan")
+
+    def deactivate(self):
+        """Method to deactivate the cart."""
+        self.is_active = False
+        db.session.commit()
 
     def __repr__(self):
         return f'<Cart {self.id} for User {self.user_id}>'
@@ -86,8 +90,7 @@ class CartItem(db.Model):
     cart_id = db.Column(db.Integer, db.ForeignKey('carts.id'), nullable=False)  # Link to the Cart it belongs to
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)  # Link to the Product being added to the cart
     quantity = db.Column(db.Integer, nullable=False, default=1)  # Quantity of the product in the cart
-    price_at_addition = db.Column(db.Float, nullable=False)  # Price of the product at the time it was added to the cart
-
+    price = db.Column(db.Float, nullable=False)  
     # Relationship to Cart table
     cart = db.relationship('Cart', back_populates='items')
 

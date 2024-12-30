@@ -19,7 +19,6 @@
                     <img src="{{ url_for('static', filename='images/' + product.image_url.split('/')[-1]) }}" alt="Best Seller {{ product.id }}">
                     <a href="/product/{{ product.id }}"><h3>{{ product.name }}</h3></a>
                     <p>${{ product.price }}</p>
-                    <button type="submit">Add to cart</button>
                 </div>
             {% else %}
                 <p>No best sellers available at the moment.</p>
