@@ -90,7 +90,6 @@ def product_detail(product_id):
     # Query the database for the product with the given ID
     product = Product.query.get(product_id)
     if not product:
-        flash("Product not found.", "error")
         return redirect("/")
 
     return render_template("product.html", product=product)
@@ -199,7 +198,7 @@ def register():
 def admin_dashboard():
     #Double check and ensure that the user is an admin
     if current_user.role != 'admin':
-        redirect("/")
+        return redirect("/")
     #Get total number of users that are admin
     total_users = User.query.filter(User.role != 'admin').count()
 
@@ -220,6 +219,7 @@ def admin_dashboard():
     return render_template("admin_dash.html", total_users = total_users, total_orders = total_orders, total_products_sold = total_products_sold, total_revenue = total_revenue, admin_data = admin_data)
 
 @app.route('/admin/create_admin', methods=['POST'])
+@login_required
 def create_admin():
     """
     Test 2nd Admin created
@@ -248,6 +248,33 @@ def create_admin():
     db.session.commit()
 
     return redirect("/admin/dashboard")
+
+@app.route("/admin/users")
+@login_required
+def admin_users():
+    # Check if the current user is an admin
+    if current_user.role != 'admin':
+        return redirect("/login")  # Redirect to login
+
+    # Fetch all users from the database
+    users = User.query.all()
+
+    # Render the admin users page
+    return render_template("admin_user.html", users=users)
+
+@app.route("/admin/delete/<int:user_id>", methods=["POST"])
+@login_required
+def delete_user(user_id):
+     # Check if the current user is an admin
+    if current_user.role != 'admin':
+        return redirect("/login")  # Redirect to login
+    
+    # This will return 404 if user doesn't exist
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    return redirect("/admin/users")
+
 
 @app.route("/admin/add_products", methods=["GET", "POST"])
 @login_required
@@ -291,8 +318,6 @@ def add_products():
         # Add the product to the database
         db.session.add(new_product)
         db.session.commit()
-
-        flash("Product added successfully!", "success")
         return redirect("/admin/listing")  # Redirect to the admin dashboard
         
     return render_template("add_products.html")
@@ -314,7 +339,6 @@ def admin_listing():
 def delete_product(product_id):
     # Ensure the user is an admin
     if current_user.role != 'admin':
-        flash("You are not authorized to delete products.", "error")
         return redirect("/")
 
     # Fetch the product by its id
@@ -324,7 +348,6 @@ def delete_product(product_id):
     if product:
         db.session.delete(product)
         db.session.commit()
-        flash("Product deleted successfully.", "success")
     else:
         flash("Product not found.", "error")
 
@@ -351,7 +374,34 @@ def admin_orders():
 @app.route("/user/dashboard")
 @login_required
 def user_dashboard():
-    return render_template("user_dash.html")
+    # Fetch the current user's email and mask the password
+    email = current_user.email
+    password_hidden = "*" * len("password") + ("  (Hidden)")  # Mask the password with stars
+    return render_template("user_dash.html", email=email, password_hidden=password_hidden)
+
+@app.route("/user/edit", methods=["GET", "POST"])
+@login_required
+def edit_profile():
+    if request.method == "POST":
+        # Get the updated values from the form
+        first_name = request.form.get("first")
+        last_name = request.form.get("last")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        
+        # Update the user's information
+        current_user.first_name = first_name
+        current_user.last_name = last_name
+        current_user.email = email
+        
+        # If password is provided, hash it and update it
+        if password:
+            current_user.password_hash = generate_password_hash(password)
+        
+        db.session.commit()  # Commit the changes to the database
+        return redirect("/user/dashboard")
+    
+    return render_template("edit.html")
 
 ### User Cart Routes ###
 @app.route("/user/add_to_cart/<int:product_id>", methods=["POST"])
@@ -382,7 +432,6 @@ def add_to_cart_user(product_id):
         db.session.add(cart_item)
 
     db.session.commit()
-    flash(f"{product.name} added to your cart!", "success")
     return redirect("/user/cart")
 
 
@@ -395,7 +444,6 @@ def edit_cart_user(product_id):
 
     cart = Cart.query.filter_by(user_id=current_user.id, is_active=True).first()
     if not cart:
-        flash("No active cart found!", "danger")
         return redirect("/user/cart")
 
     cart_item = CartItem.query.filter_by(cart_id=cart.id, product_id=product.id).first()
@@ -405,9 +453,8 @@ def edit_cart_user(product_id):
         else:
             cart_item.quantity = min(new_quantity, product.stock)
         db.session.commit()
-        flash(f"Cart updated: {product.name} (x{new_quantity})", "success")
     else:
-        flash("Item not found in your cart!", "danger")
+        flash("Item not found in your cart!", "error")
 
     return redirect("/user/cart")
 
@@ -420,7 +467,6 @@ def remove_from_cart_user(product_id):
     
     # If no active cart exists
     if not cart:
-        flash("No active cart found!", "danger")
         return redirect("/user/cart")
 
     # Log cart items before deletion attempt
@@ -432,9 +478,8 @@ def remove_from_cart_user(product_id):
     if cart_item:
         db.session.delete(cart_item)
         db.session.commit()
-        flash("Item removed from your cart!", "success")
     else:
-        flash(f"Product {product_id} not found in the cart.", "danger")
+        flash(f"Product {product_id} not found in the cart.", "error")
 
     # Log cart items after removal attempt
     cart_items = CartItem.query.filter_by(cart_id=cart.id).all()
@@ -493,7 +538,6 @@ def add_to_cart_guest(product_id):
     
     # Mark session as modified to ensure it's saved
     session.modified = True
-    flash(f"{product.name} added to your cart!", "success")
     
     # Redirect to the cart page for guests
     return redirect("/cart")
@@ -511,7 +555,6 @@ def edit_cart_guest(product_id):
         new_quantity = int(request.form.get('quantity', 1))  # Get the new quantity from the form
         product = Product.query.get(product_id)  # Query the product to check its stock
         if new_quantity > product.stock:
-            flash("Cannot exceed stock quantity!", "danger")
             return redirect("/cart")  # Redirect if quantity exceeds stock
         
         # Update the quantity in the cart
@@ -520,8 +563,6 @@ def edit_cart_guest(product_id):
     # Save the updated cart back to session
     session["cart"] = cart
     session.modified = True  # Ensure session is updated
-
-    flash("Cart updated!", "success")
     return redirect("/cart")  # Redirect back to the cart page
 
 
@@ -537,8 +578,6 @@ def remove_from_cart_guest(product_id):
     # Save the updated cart back to session
     session["cart"] = cart
     session.modified = True  # Ensure session is updated
-
-    flash("Item removed from cart!", "success")
     return redirect("/cart")  # Redirect back to the cart page
 
 
@@ -582,7 +621,6 @@ def checkout_user():
     cart = Cart.query.filter_by(user_id=current_user.id, is_active=True).first()
 
     if not cart or not cart.items:
-        flash("Your cart is empty! Add items to proceed to checkout.", "danger")
         return redirect("/user/cart")
 
     # Create a new order
@@ -607,15 +645,12 @@ def checkout_user():
         # Reduce stock for each product
         cart_item.product.stock -= cart_item.quantity
         if cart_item.product.stock < 0:
-            flash(f"Not enough stock for {cart_item.product.name}!", "danger")
             db.session.rollback()
             return redirect("/user/cart")
 
     # Empty the user's cart after checkout
     db.session.delete(cart)
     db.session.commit()
-
-    flash("Order placed successfully!", "success")
     return redirect("/orders")
 
 @app.route("/orders")
@@ -634,7 +669,6 @@ def checkout_guest():
 
     # Check if the cart is empty
     if not cart_items:
-        flash("Your cart is empty!", "danger")
         return redirect("/cart")
 
     # Validate cart items to ensure proper format
@@ -646,8 +680,6 @@ def checkout_guest():
 
     # Handle invalid cart data
     if not valid_items:
-        print("Invalid cart items detected:", cart_items)  # Debugging output
-        flash("Invalid cart data. Please try again.", "danger")
         return redirect("/cart")
 
     # Calculate the total price

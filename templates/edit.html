@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Edit Profile
+{% endblock %}
+
+{% block body %}
+    <div class="edit_profile">
+        <h3>Edit Your Profile</h3>
+        
+        <!-- Display the current values in the form fields -->
+        <form method="POST" action="/user/edit">
+            <div>
+                <label for="first">First Name</label>
+                <input type="text" name="first" value="{{ current_user.first_name}}" required>
+            </div>
+
+            <div>
+                <label for="last">Last Name</label>
+                <input type="text" name="last" value="{{ current_user.last_name }}" required>
+            </div>
+            
+            <div>
+                <label for="email">Email</label>
+                <input type="email" name="email" value="{{ current_user.email }}" required>
+            </div>
+            
+            <div>
+                <label for="password">New Password (Leave blank if you don't want to change)</label>
+                <input type="password" name="password">
+            </div>
+            
+            <button type="submit">Save Changes</button>
+        </form>
+    </div>
+{% endblock %}

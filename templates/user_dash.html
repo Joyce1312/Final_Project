@@ -11,10 +11,10 @@
             <p>Welcome to your dashboard</p>
         </div>
         <div class="user_info">
-            <h3>Personal Info <a class="edit_link" href="#">Edit</a></h3>
+            <h3>Personal Info <a class="edit_link" href="/user/edit"><button>Edit</button></a></h3>
             <p>Name: {{ current_user.full_name | title }} </p>
-            <p>Email: </p>
-            <p>Password: </p>
+            <p>Email: {{ email }}</p>
+            <p>Password: {{ password_hidden }}</p>
 
         </div>
     </div>

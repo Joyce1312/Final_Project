@@ -1,0 +1,40 @@
+{% extends "admin_layout.html" %}
+{% block title %}
+    Manage Users
+{% endblock %}
+
+{% block body %}
+    <h2>Manage All Users</h2>
+
+    <!-- Table displaying all users -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Role</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.first_name | title }}</td>
+                <td>{{ user.last_name | title }}</td>
+                <td>{{ user.role | title }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                    <!-- Delete button (Ensure the delete action is protected) -->
+                    <form action="/admin/delete/{{ user.id }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
