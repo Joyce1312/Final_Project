@@ -12,6 +12,9 @@
         <div class="product-right">
             <h1>{{ product.name }}</h1>
             <p class="left">${{ product.price }}</p>
+            {% if product.stock == 0 %}
+                <p class="sold-out">Sold Out</p>
+            {% else %}
             <div>
                 <form action="{% if current_user.is_authenticated %}/user/add_to_cart/{{ product.id }}{% else %}/guest/add_to_cart/{{ product.id }}{% endif %}" method="post">
                     <label for="quantity">Quantity:</label>
@@ -23,6 +26,7 @@
                     <button class="add_cart" type="submit">Add to Cart</button>
                 </form>
             </div>
+            {% endif %}
             <h3>Product Description</h3>
             <p style="white-space: pre-line;">{{ product.description }}</p>
         </div>

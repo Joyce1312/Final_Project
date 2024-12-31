@@ -98,6 +98,13 @@ footer {
     height: 60%;
 }
 
+.sold-out {
+    color: red;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
 /* Login Page */
 .login{
     height: 1000px;
