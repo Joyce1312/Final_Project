@@ -1,5 +1,7 @@
 import os
 class Config:
+    # Flask secret key
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-key")
     #Configures the session
     #SESSION_PERMANENT is a configuration variable (Flask specific)
     """

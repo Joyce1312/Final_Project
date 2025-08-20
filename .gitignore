@@ -1,1 +1,28 @@
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Env files (keep .env.example, ignore real ones)
+.env
+*.env
+
+# SQLite DBs / instance data
+instance/
+*.db
+
+# Flask-Session files
+flask_session/
+
+# Logs
+*.log
+
+# Editors / OS
+.vscode/
 .DS_Store

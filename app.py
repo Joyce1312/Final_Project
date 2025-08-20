@@ -20,7 +20,7 @@ from models import create_admin_user  # Import function to create the admin user
 app = Flask(__name__)
 #Applies all the configuration from config.py
 app.config.from_object(Config)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'fallback_default_key')
+#app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'fallback_default_key')
 #This creates an instance of the SQLAlchemy class and associates it with the app you just created. 
 #Now db can be used to interact with the database in your Flask application 
 # Initialize db with app

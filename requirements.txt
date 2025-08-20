@@ -1,0 +1,6 @@
+Flask
+gunicorn
+Flask-Session
+Flask-SQLAlchemy
+alembic
+psycopg2-binary
