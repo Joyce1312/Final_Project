@@ -9,3 +9,4 @@ Flask-Login
 python-dotenv
 Werkzeug
 SQLAlchemy
+pytz
