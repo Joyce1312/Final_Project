@@ -4,3 +4,8 @@ Flask-Session
 Flask-SQLAlchemy
 alembic
 psycopg2-binary
+Flask-Migrate
+Flask-Login
+python-dotenv
+Werkzeug
+SQLAlchemy
