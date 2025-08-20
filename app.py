@@ -18,8 +18,16 @@ from models import create_admin_user  # Import function to create the admin user
 # This line initializes your web application, and tells Flask where to find your files and how to set up the app
 #__name__ refers to the current file name
 app = Flask(__name__)
+# Define the upload folder and allowed file extensions
+UPLOAD_FOLDER = 'static/images'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 #Applies all the configuration from config.py
 app.config.from_object(Config)
+os.makedirs(app.instance_path, exist_ok=True)               # for SQLite file
+os.makedirs("flask_session", exist_ok=True)                 # for filesystem sessions
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)     # static/images
 #app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'fallback_default_key')
 #This creates an instance of the SQLAlchemy class and associates it with the app you just created. 
 #Now db can be used to interact with the database in your Flask application 
@@ -32,12 +40,6 @@ login_manager.login_view = 'login'
 
 #Initialize migration extensions
 migrate = Migrate(app, db)
-
-# Define the upload folder and allowed file extensions
-UPLOAD_FOLDER = 'static/images'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Helper function to check allowed file extensions (case-insensitive)
 def allowed_file(filename):
