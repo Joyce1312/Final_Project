@@ -11,8 +11,6 @@ from sqlalchemy.orm import joinedload
 
 # Import db from db.py
 from db import db
-from models import *  # Import models after db is initialized
-from models import create_admin_user  # Import function to create the admin user
 
 
 # This line initializes your web application, and tells Flask where to find your files and how to set up the app
@@ -40,6 +38,9 @@ login_manager.login_view = 'login'
 
 #Initialize migration extensions
 migrate = Migrate(app, db)
+
+from models import *  # Import models after db is initialized
+from models import create_admin_user  # Import function to create the admin user
 
 # Helper function to check allowed file extensions (case-insensitive)
 def allowed_file(filename):

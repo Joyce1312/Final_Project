@@ -13,7 +13,7 @@ class User(db.Model):
     first_name = db.Column(db.String(50), nullable=False)  # User's first name
     last_name = db.Column(db.String(50), nullable=False)  # User's last name
     email = db.Column(db.String(100), unique=True, nullable=False)  # Unique email for user authentication
-    password_hash = db.Column(db.String(128), nullable=False)  # Hashed password
+    password_hash = db.Column(db.Text, nullable=False)  # Hashed password
     role = db.Column(db.String(10), default="user")  # User role (default: user)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('America/New_York')))  # Timestamp in NY timezone
 
